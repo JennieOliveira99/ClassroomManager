@@ -1,0 +1,89 @@
+create database mapa;
+
+#selecionar bd
+use mapa;
+
+#criando table usuarios
+
+create table tbl_usuario(
+id_usuario integer not null auto_increment primary key,
+nome varchar(50),
+usuario varchar(15),
+senha varchar(32),
+email varchar(80),
+dtcria datetime default now(),
+estatus char(01) default ''
+
+);
+
+# criando table cadastro sala
+
+create table tbl_sala(
+codigo integer not null primary key,
+descricao varchar(30) default '',
+andar integer,
+capacidade integer,
+dtcria datetime default now(),
+estatus char(01) default ''
+
+);
+
+
+#criando table prof
+
+create table tbl_professor(
+id_usuario integer not null auto_increment primary key,
+nome varchar(50),
+cpf varchar(11) default '',
+tipo char(1) default 'F',
+dtcria datetime default now(),
+estatus char(01) default ''
+);
+
+#alterando campo errado
+ALTER TABLE tbl_professor 
+CHANGE COLUMN id_usuario codigo INTEGER NOT NULL AUTO_INCREMENT;
+
+#verificando se ocorreu tudo bem 
+SHOW COLUMNS FROM tbl_professor;
+
+#criando table cadastro de turma
+
+create table tbl_turma(
+codigo integer not null auto_increment primary key,
+descricao varchar(50),
+capacidade integer default 0,
+dataInicio date,
+dtcria datetime default now(),
+estatus char(01) default ''
+);
+
+
+#criando tabela de cadastro de horarios
+
+create table tbl_horario(
+codigo integer auto_increment primary key,
+descricao varchar(50),
+hora_ini time,
+hora_fim time,
+dtcria datetime default now(),
+estatus char(01) default ''
+);
+
+
+#criando tabela de mapeamento de sala
+create table tbl_mapa(
+codigo integer auto_increment primary key,
+data_reserva date,
+sala integer default 0,
+codigo_horario integer default 0,
+codigo_turma integer default 0,
+codigo_professor integer default 0,
+estatus char(01) default '',
+
+foreign key (sala) references tbl_sala(codigo),
+foreign key (codigo_horario) references tbl_horario(codigo),
+foreign key (codigo_turma) references tbl_turma(codigo),
+foreign key (codigo_professor) references tbl_professor(codigo)
+
+);
