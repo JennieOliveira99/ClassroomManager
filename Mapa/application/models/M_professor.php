@@ -4,7 +4,8 @@ defined('BASEPATH') or exit('No direct script access allowed');
 
 class M_professor extends CI_Model
 {
-    public function inserir($nome, $tipo, $cpf)
+   
+    public function inserir($nome, $cpf, $tipo)
     {
         try {
             //verifico se o prof ja esta cadastrado 
@@ -28,7 +29,7 @@ class M_professor extends CI_Model
             } else {
                 $dados = array(
                     'codigo' => 5,
-                    "msg" => 'Professor já cadastrado'
+                    "msg" => 'Professor já cadastrado no sistema'
                 );
             }
         } catch (Exception $e) {
