@@ -144,65 +144,103 @@ class M_professor extends CI_Model
         return $dados;
     }
 
-    public function alterar($codigo, $nome, $tipo, $cpf)
+    public function alterar($codigo, $dataReserva, $codSala, $codHorario, $codTurma, $codProfessor)
     {
         try {
-            //verifico se o prof ja esta cadastrado 
-            $retornoConsulta = $this->consultaProfessorCod($codigo);
-            if ($retornoConsulta['codigo'] == 1) {
-                $query = "update tbl_professor set";
-                $updates = array();
-                
-                if ($nome != '') {
-                    $updates[] = " nome = '$nome'";
-                }
-                if ($cpf != '') {
-                    $updates[] = " cpf = '$cpf'";
-                }
-                if ($tipo != '') {
-                    $updates[] = " tipo = '$tipo'";
-                }
-                
-                // Se não há campos para atualizar
-                if (empty($updates)) {
-                    return array(
-                        'codigo' => 3,
-                        'msg' => 'Pelo menos 1 parametro deve ser informado para atualização'
-                    );
-                }
-                
-                // Junta todos os campos a atualizar
-                $query .= implode(",", $updates);
-                $query .= " where codigo = $codigo";
-                
-                //executo a query
-                $this->db->query($query);
-                
-                //verifico se a alteração foi realizada com sucesso
-                if ($this->db->affected_rows() > 0) {
-                    $dados = array(
-                        'codigo' => 1,
-                        'mensagem' => 'Professor alterado corretamente'
-                    );
-                } else {
-                    $dados = array(
-                        'codigo' => 6,
-                        "msg" => 'Nenhuma alteração foi necessária ou houve um problema na alteração da tabela'
-                    );
-                }
-            } else {
-                $dados = array(
-                    'codigo' => 5,
-                    "msg" => 'Professor não encontrado'
+            // Primeiro verifica se o agendamento existe
+            $consulta = $this->consultar($codigo, '', '', '', '', '');
+            if ($consulta['codigo'] != 1) {
+                return array(
+                    'codigo' => 8,
+                    'msg' => 'Agendamento não encontrado no sistema'
                 );
             }
+    
+            // Inicia a construção da query
+            $query = "UPDATE tbl_mapa SET ";
+            $updates = array();
+    
+            // Adiciona apenas os campos que foram informados
+            if (!empty($dataReserva)) {
+                $updates[] = "data_reserva = '" . $this->db->escape_str($dataReserva) . "'";
+            }
+            if (!empty($codSala)) {
+                // Valida a sala
+                $salaObj = new M_sala();
+                if ($salaObj->consultar($codSala, '', '', '')['codigo'] != 1) {
+                    return array(
+                        'codigo' => 4,
+                        'msg' => 'Sala inválida'
+                    );
+                }
+                $updates[] = "sala = " . $this->db->escape($codSala);
+            }
+            if (!empty($codHorario)) {
+                // Valida o horário
+                $horarioObj = new M_horario();
+                if ($horarioObj->consultar($codHorario, '', '', '')['codigo'] != 1) {
+                    return array(
+                        'codigo' => 5,
+                        'msg' => 'Horário inválido'
+                    );
+                }
+                $updates[] = "codigo_horario = " . $this->db->escape($codHorario);
+            }
+            if (!empty($codTurma)) {
+                // Valida a turma
+                $turmaObj = new M_turma();
+                if ($turmaObj->consultaTurmaCod($codTurma)['codigo'] != 1) {
+                    return array(
+                        'codigo' => 6,
+                        'msg' => 'Turma inválida'
+                    );
+                }
+                $updates[] = "codigo_turma = " . $this->db->escape($codTurma);
+            }
+            if (!empty($codProfessor)) {
+                // Valida o professor
+                $professorObj = new M_professor();
+                if ($professorObj->consultaProfessorCod($codProfessor)['codigo'] != 1) {
+                    return array(
+                        'codigo' => 7,
+                        'msg' => 'Professor inválido'
+                    );
+                }
+                $updates[] = "codigo_professor = " . $this->db->escape($codProfessor);
+            }
+    
+            // Se não há campos para atualizar
+            if (empty($updates)) {
+                return array(
+                    'codigo' => 9,
+                    'msg' => 'Nenhum campo válido para atualização'
+                );
+            }
+    
+            // Monta a query final
+            $query .= implode(", ", $updates) . " WHERE codigo = " . $this->db->escape($codigo);
+    
+            // Executa a atualização
+            $this->db->query($query);
+    
+            if ($this->db->affected_rows() > 0) {
+                return array(
+                    'codigo' => 1,
+                    'msg' => 'Agendamento alterado com sucesso'
+                );
+            } else {
+                return array(
+                    'codigo' => 9,
+                    'msg' => 'Nenhuma alteração realizada ou dados idênticos aos existentes'
+                );
+            }
+    
         } catch (Exception $e) {
-            $dados = array(
+            return array(
                 'codigo' => 00,
-                "msg" => 'ATENÇÃO: o seguinte erro aconteceu: ' . $e->getMessage()
+                'msg' => 'ATENÇÃO: o seguinte erro aconteceu: ' . $e->getMessage()
             );
         }
-        return $dados;
     }
 
     public function desativar($codigo)
