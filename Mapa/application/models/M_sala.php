@@ -156,11 +156,11 @@ class M_sala extends CI_Model
                 }
 
                 if ($andar !== '') {
-                    $query .= "andar = '$andar, ";
+                    $query .= "andar = $andar, ";
                 }
 
                 if ($capacidade !== '') {
-                    $query .= "capacidade = '$capacidade', ";
+                    $query .= "capacidade = $capacidade, ";
                 }
 
                 // Termino a concatenação da query
