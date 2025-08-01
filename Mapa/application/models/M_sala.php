@@ -1,72 +1,72 @@
 <?php
-defined('BASEPATH') or exit('No direct script access alowed');
+defined('BASEPATH') or exit('No direct script access allowed');
 
 class M_sala extends CI_Model
 {
     public function inserir($codigo, $descricao, $andar, $capacidade)
     {
         try {
-            // Verifico se a sala já está cadastrada
+            //Verifico se a sala já está cadastrada
             $retornoConsulta = $this->consultaSala($codigo);
 
-            if ($retornoConsulta['codigo'] != 1 && 
-                $retornoConsulta['codigo'] !=7) {
-                // Query de inserção dos dados
+            if ($retornoConsulta['codigo'] != 1 && $retornoConsulta['codigo'] != 7) {
+                //Query de inserção dos dados
                 $this->db->query("insert into tbl_sala (codigo, descricao, andar, capacidade)
-                                 values ($codigo, '$descricao', $andar, $capacidade)");
-                
-                // Verificar se a inserção ocorreu com sucesso
+                    values ($codigo, '$descricao', $andar, $capacidade)");
+
+                //Verificar se a inserção ocorreu com sucesso
                 if ($this->db->affected_rows() > 0) {
                     $dados = array(
                         'codigo' => 1,
                         'msg' => 'Sala cadastrada corretamente'
                     );
-
                 } else {
                     $dados = array(
                         'codigo' => 6,
                         'msg' => 'Houve algum problema na inserção na tabela de salas.'
                     );
-                }                    
+                }
             } else {
-                $dados = array('codigo' => $retornoConsulta['codigo'],
-                                'msg' => $retornoConsulta['msg']);
+                $dados = array(
+                    'codigo' => $retornoConsulta['codigo'],
+                    'msg' => $retornoConsulta['msg']
+                );
             }
         } catch (Exception $e) {
             $dados = array(
                 'codigo' => 00,
-                'msg' => 'ATENÇÃO: O seguinte erro aconteceu -> ',
+                'msg' => 'ATENÇÃO: O seguinte erro aconteceu -> ' .
                 $e->getMessage(),
                 "\n"
             );
         }
 
-        // Envia o array $dados com as informações tratadas acima pela estrutura de decisão if
+        //Envia a array $dados com as informações tratadas
+        //acima pela estrutura de decisão if
         return $dados;
     }
-
     private function consultaSala($codigo)
     {
-        try{
-            // Query para consultar dados de acordo com parâmetros passados
+        try {
+            //Query para consultar dados de acordo com parâmetros passados
             $sql = "select * from tbl_sala where codigo = $codigo ";
 
             $retornoSala = $this->db->query($sql);
 
-            // Verificar se a consulta ocorreu com sucesso
+            //Verificar se a consulta ocorreu com sucesso
             if ($retornoSala->num_rows() > 0) {
                 $linha = $retornoSala->row();
                 if (trim($linha->estatus) == "D") {
                     $dados = array(
                         'codigo' => 7,
                         'msg' => 'Sala desativada no sistema, caso precise reativar a mesma,
-                                  fale com o administrador.'
+                        fale com o administrador.'
                     );
                 } else {
 
                     $dados = array(
                         'codigo' => 8,
-                        'msg' => 'Sala já cadastrada no sistema. '
+                        'msg' => 'Sala já cadastrada no sistema.'
                     );
                 }
 
@@ -85,168 +85,196 @@ class M_sala extends CI_Model
             );
         }
 
-        // Envia o array $dados com as informações tratadas acima pela estrutura de decisão if
+        //Envia o array $dados com as informações tratadas
+        //acima pela estrutura de decisão if
         return $dados;
     }
 
     public function consultar($codigo, $descricao, $andar, $capacidade)
-    {
-        try {
-            // Query para consultar dados de acordo com parâmetros passados
-            $sql = "select * from tbl_sala where estatus = '' ";
+{
+    try {
+        //Query para consultar dados de acordo com parâmetros passados
+        $sql = "select * from tbl_sala where estatus = '' ";
 
-            if (trim($codigo) != '') {
-                $sql = $sql . " and codigo = $codigo ";
-            }
+        if (trim($codigo) != '') {
+            $sql = $sql . " and codigo = $codigo ";
+        }
 
-            if (trim($andar) != '') {
-                $sql = $sql . " and andar = '$andar' ";
-            }
+        if (trim($andar) != '') {
+            $sql = $sql . " and andar = '$andar' ";
+        }
 
-            if (trim($descricao) != '') {
-                $sql = $sql . " and descricao like= '%$descricao%' ";
-            }
+        if (trim($descricao) != '') {
+            $sql = $sql . " and descricao like '%$descricao%' ";
+        }
+        if (trim($capacidade) != '') {
+            $sql = $sql . " and andar = '$capacidade' ";
+        }
 
-            if (trim($capacidade) != '') {
-                $sql = $sql . " and andar = '$capacidade' ";
-            }
+        $sql = $sql . " order by codigo ";
 
-            $sql = $sql . " order by codigo ";
+        $retorno = $this->db->query($sql);
 
-            $retorno = $this->db->query($sql);
-
-            // Verificar se a consulta ocorreu com sucesso
-            if ($retorno->num_rows() > 0) {
-                $dados = array(
-                    'codigo' => 1,
-                    'msg' => 'Consulta efetuada com sucesso.',
-                    'dados' => $retorno->result()
-                );
-            } else {
-                $dados = array(
-                    'codigo' => 6,
-                    'msg' => 'Sala não encontrada.'
-                );
-            }
-        } catch (Exception $e) {
+        //Verificar se a consulta ocorreu com sucesso
+        if ($retorno->num_rows() > 0) {
             $dados = array(
-                'codigo' => 00,
-                'msg' => 'ATENÇÃO: O seguinte erro aconteceu -> ',
-                $e->getMessage(),
-                "\n"
+                'codigo' => 1,
+                'msg' => 'Consulta efetuada com sucesso.',
+                'dados' => $retorno->result()
+            );
+        } else {
+            $dados = array(
+                'codigo' => 6,
+                'msg' => 'Sala não encontrada.'
             );
         }
-        // Envia o array $dados com as informações tratadas acima pela estrutura de decisão if
-        return $dados;
+    } catch (Exception $e) {
+        $dados = array(
+            'codigo' => 00,
+            'msg' => 'ATENÇÃO: O seguinte erro aconteceu -> ',
+            $e->getMessage(),
+            "\n"
+        );
     }
-
-    public function alterar ($codigo, $descricao, $andar, $capacidade)
+    
+    //Envia o array $dados com as informações tratadas
+    //acima pela estrutura de decisão if
+    return $dados;
+    }
+    
+    public function alterar($codigo, $descricao, $andar, $capacidade)
     {
         try {
-            // Verifico se a sala já está cadastrada
+
+            //echo 'codigo ' . $codigo . ' descricao '. $descricao . ' andar ' . $andar . ' capacidade ' . $capacidade;
+            //Verifico se a sala já está cadastrada
             $retornoConsulta = $this->consultaSala($codigo);
-
+           
+    
             if ($retornoConsulta['codigo'] == 8) {
-                # Inicio a query para atualização
+                //Inicio a query para atualização
                 $query = "update tbl_sala set ";
-
-                // Vamos comparar os items
+    
+                //Vamos comparar os itens
                 if ($descricao !== '') {
                     $query .= "descricao = '$descricao', ";
                 }
-
+    
                 if ($andar !== '') {
                     $query .= "andar = $andar, ";
                 }
-
+    
                 if ($capacidade !== '') {
                     $query .= "capacidade = $capacidade, ";
                 }
-
-                // Termino a concatenação da query
+                //Termino a concatenação da query
                 $queryFinal = rtrim($query, ", ") . " where codigo = $codigo";
 
-                // Executo a Query de atualização dos dados
+                //Executo a Query de atualização dos dados
                 $this->db->query($queryFinal);
 
-                // Verificar se a atualização ocorreu com sucesso
-                if ($this->db->affected_rows() > 0) {
-                    $dados = array(
-                        'codigo' => 1,
-                        'msg' => 'Sala atualizada corretamente.'
-                    );
+               //Verificar se a atualização ocorreu com sucesso
+               if ($this->db->affected_rows() > 0) {
+                  $dados = array(
+                  'codigo' => 1,
+                  'msg' => 'Sala atualizada corretamente.'
+                );
+               } else {
+                   $dados = array(
+                   'codigo' => 6,
+                   'msg' => 'Houve algum problema na atualização na tabela de sala.'
+                   );
+               }
+        } else {
+           $dados = array(
+            'codigo' => 5,
+            'msg' => 'Sala não cadastrada no sistema.'
+           );
+        }
+    } catch (Exception $e) {
+        $dados = array(
+        'codigo' => 00,
+        'msg' => 'ATENÇÃO: O seguinte erro aconteceu -> ',
+        $e->getMessage(),
+        "\n"
+         );
+     }
+    return $dados;
+}    
+//Envia o array $dados com as informações tratadas
+//Acima pela estrutura de decisão if
+  
 
-                } else {
-                    $dados = array(
-                        'codigo' => 6,
-                        'msg' => 'Houve algum problema na atualização na tabela de sala.'
-                    );
-                }
+    public function desativar($codigo)
+{
+    try {
+        //Verifico se a sala já está cadastrada
+        $retornoConsulta = $this->consultaSala($codigo);
+
+        if ($retornoConsulta['codigo'] == 8) {
+
+            //Query de atualização dos dados
+            $this->db->query("update tbl_sala set estatus = 'D'
+                where codigo = $codigo");
+
+            //Verificar se a atualização ocorreu com sucesso
+            if ($this->db->affected_rows() > 0) {
+                $dados = array(
+                    'codigo' => 1,
+                    'msg' => 'Sala DESATIVADA corretamente.'
+                );
             } else {
                 $dados = array(
                     'codigo' => 5,
-                    'msg' => 'Sala não cadastrada no sistema.'
+                    'msg' => 'Houve algum problema na DESATIVAÇÃO da Sala.'
                 );
             }
-
-        } catch (Exception $e) {
+        } else {
             $dados = array(
-                'codigo' => 00,
-                'msg' => 'ATENÇÃO: O seguinte erro aconteceu -> ',
-                $e->getMessage(),
-                "\n"
+                'codigo' => 6,
+                'msg' => 'Sala não cadastrada no Sistema, não pode excluir.'
             );
         }
-        // Envia o array $dados com as informações tratadas acima pela estrutura de decisão if
-        return $dados;
+    } catch (Exception $e) {
+        $dados = array(
+            'codigo' => 00,
+            'msg' => 'ATENÇÃO: O seguinte erro aconteceu -> ',
+            $e->getMessage(),
+            "\n"
+        );
     }
 
-    public function desativar($codigo)
-    {
-        try {
-            // Verifico se a sala já está cadastrada
-            $retornoConsulta = $this->consultaSala($codigo);
+    //Envia o array $dados com as informações tratadas
+    //Acima pela estrutura de decisão if
+    return $dados;
+    }
+    public function listarTodas(){
+        try{
+             //Query para consultar dados de acordo com parâmetros
+            $sql = "select * from tbl_sala where estatus = ''
+                    order by codigo";
+    
+            $retorno = $this->db->query($sql);
 
-            if ($retornoConsulta['codigo'] == 8) {
-                
-                // Query de atualização de dados
-                $this->db->query("update tbl_sala set estatus = 'D'
-                                 where codigo = $codigo");
-
-                // Verificar se a atualização ocorreu com sucesso
-                if ($this->db->affected_rows() > 0) {
-                    $dados = array(
-                        'codigo' => 1,
-                        'msg' => 'Sala DESATIVADA corretamente.'
-                    );
-
-                } else {
-                    $dados = array(
-                        'codigo' => 5,
-                        'msg' => 'Houve algum problema na DESATIVAÇÃO da Sala.'
-                    );
-                }
-
-            } else {
-                $dados = array(
-                    'codigo' => 6,
-                    'msg' => 'Sala não cadastrada no Sistema, não pode excluir.'
-                );
+            // verificar se a consulta aocorreu com sucesso
+            if ($retorno->num_rows() > 0){
+              $dados = array(
+                  'codigo' => 1,
+                  'msg' => 'consulta efetuada com sucesso.',
+                  'dados'=> $retorno->result()
+              );
+            }else{
+              $dados = array(
+                  'codigo' => 6,
+                  'msg' => 'Sala não encontrada'
+              );
             }
-        } catch (Exception $e) {
+        } catch (Exception $e){
             $dados = array(
                 'codigo' => 00,
-                'msg' => 'ATENÇÃO: O seguinte erro aconteceu -> ',
-                $e->getMessage(),
-                "\n"
+                'msg' => 'ATENÇÃO: O seguinte erro aconteceu -> ' . $e->getMessage()
             );
         }
-         // Envia o array $dados com as informações tratadas acima pela estrutura de decisão if
-         return $dados; 
+        return $dados; // retorna um array de objetos
     }
 }
-
-?>
-
-
-

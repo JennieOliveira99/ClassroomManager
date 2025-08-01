@@ -74,7 +74,7 @@ estatus char(01) default ''
 #criando tabela de mapeamento de sala
 create table tbl_mapa(
 codigo integer auto_increment primary key,
-data_reserva date,
+dataReserva date,
 sala integer default 0,
 codigo_horario integer default 0,
 codigo_turma integer default 0,

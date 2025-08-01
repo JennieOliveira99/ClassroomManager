@@ -1,48 +1,44 @@
 <?php
-defined('BASEPATH') or exit('No direct script access allowed');
+defined('BASEPATH') OR exit('No direct script access allowed');
 
-class Turma extends CI_Controller
-{
-
-    //atributos privados da classe
+class Turma extends CI_Controller {
+    // Atributos privados da classe
     private $codigo;
     private $descricao;
     private $capacidade;
     private $dataInicio;
     private $estatus;
 
-    //Getters dos atributos
-
-    public function getCodigo()
-    {
+    // Getters dos atributos
+    public function getCodigo() {
         return $this->codigo;
     }
 
-    public function getDescricao()
-    {
-        return $this->descricao;
-    }
-
-    public function getCapacidade()
-    {
-        return $this->capacidade;
-    }
-
-    public function getDataInicio()
-    {
+    public function getDataInicio() {
         return $this->dataInicio;
     }
 
-    public function getEstatus()
-    {
+    public function getDescricao() {
+        return $this->descricao;
+    }
+
+    public function getCapacidade() {
+        return $this->capacidade;
+    }
+
+    public function getEstatus() {
         return $this->estatus;
     }
 
-    //Setters dos atributos
-
+        // Setters dos atributos
     public function setCodigo($codigoFront)
     {
         $this->codigo = $codigoFront;
+    }
+
+    public function setDataInicio($dataInicioFront)
+    {
+        $this->dataInicio = $dataInicioFront;
     }
 
     public function setDescricao($descricaoFront)
@@ -55,327 +51,274 @@ class Turma extends CI_Controller
         $this->capacidade = $capacidadeFront;
     }
 
-    public function setDataInicio($dataInicioFront)
-    {
-        $this->dataInicio = $dataInicioFront;
-    }
-
     public function setEstatus($estatusFront)
     {
         $this->estatus = $estatusFront;
     }
 
-    public function inserir()
-    {
-        //descricao e capacidade recebidos via JSON  e colocados  em variaveis
-        //retornos possiveis:
-        //1 - turma cadastrada corretamente
-        //2 - faltou informar descricao  
-        //3 - faltou informar capacidade
-        //4- faltou informar data de inicio da turma
-        //5 - turma ja cadastrada no sistema
-        //6 - houve um problema no inserir da turma
+    public function inserir()    {
+        // Descrição, e capacidade
+        // recebidos via JSON e colocados em variáveis
+        // Retornos possíveis:
+        //1 - Turma cadastrada corretamente (Banco)
+        //2 - Faltou informar a Descricao (FrontEnd)
+        //3 - Faltou informar a capacidade (FrontEnd)
+        //4 - Faltou informar a data de início da turma (FrontEnd)
+        //5 - Turma já cadastrada no sistema
+        //6 - Houve algum problema no insert da tabela (Banco)
 
-        try {
-            //dados recebidos via JSON
+        try{
+
+            //Dados recebidos via JSON
+            //e colocados em atributos
             $json = file_get_contents('php://input');
             $resultado = json_decode($json);
 
-            //array com os dados que deverao vir do front
+            //Array com os dados que deverão vir do Front
             $lista = array(
-                'descricao' => '0',
-                'capacidade' => '0',
-                'dataInicio' => '0'
+                "descricao" => '0',
+                "capacidade" => '0',
+                "dataInicio" => '0'
             );
 
             if (verificarParam($resultado, $lista) == 1) {
-
-                //fazendo os setters
+                //Fazendo os setters
                 $this->setDescricao($resultado->descricao);
                 $this->setCapacidade($resultado->capacidade);
                 $this->setDataInicio($resultado->dataInicio);
 
-                //faremos com os dados que deverão vir do front
-                if (trim($this->getDescricao()) == '') {
-                    $retorno = array(
-                        'codigo' => 2,
-                        'msg' => 'ATENÇÃO: Faltou informar a descrição da turma.'
-                    );
-                } else if (trim($this->getCapacidade()) == '') {
-                    $retorno = array(
-                        'codigo' => 3,
-                        'msg' => 'ATENÇÃO: Faltou informar a capacidade da turma.'
-                    );
-                } else if (trim($this->getDataInicio()) == '') {
-                    $retorno = array(
-                        'codigo' => 4,
-                        'msg' => 'ATENÇÃO: Faltou informar a data de início da turma.'
-                    );
-                } else {
-                    //realizo a instancia da model
+                //Faremos uma validação para sabermos se todos os dados
+                //foram enviados
+                if (trim($this->getDescricao()) == ''){
+                    $retorno = array('codigo' => 2,
+                                    'msg' => 'Descrição não informada.');
+                }elseif (trim($this->getCapacidade()) == ''){
+                    $retorno = array('codigo' => 3,
+                                    'msg' => 'Capacidade não informada.');
+                }elseif (trim($this->getDataInicio()) == ''){
+                    $retorno = array('codigo' => 4,
+                                    'msg' => 'Data de início não informada.');
+                }else{
+                    //Realizo a instância da Model
                     $this->load->model('M_turma');
-                    //atributo $retorno recebe array com infos da validação do acesso
-                    $retorno = $this->M_turma->inserir(
-                        $this->getDescricao(),
-                        $this->getCapacidade(),
-                        $this->getDataInicio()
-                    );
-                }
-            } else {
+
+                    //Atributo $retorno recebe array com informações
+                    //da validação do acesso
+                    $retorno = $this->M_turma->inserir($this->getDescricao(),
+                                                       $this->getCapacidade(),
+                                                       $this->getDataInicio());
+                }    
+            }else {
                 $retorno = array(
-                    'codigo' => 99,
-                    'msg' => 'ATENÇÃO: Os campos do FrontEnd não reprentaam o método de inserção. Verifique.'
+                'codigo' => 99,
+                'msg' => 'Os campos vindos do FrontEnd não representam
+                            o método de inserção. Verifique.'
                 );
             }
-        } catch (Exception $e) {
-            $retorno = array(
-                'codigo' => 00,
-                'msg' => 'ATENÇÃO: O seguinte erro aconteceu -> ' . $e->getMessage()
-            );
-        }
-        //retorno formato JSON
-        echo json_encode($retorno);
-    }
 
-    public function consultar()
-    {
-        //codigo, descricao e capacidade recebidos via JSON  e colocados  em variaveis
-        //retornos possiveis:
-        //1 - turma cadastrada corretamente
-        //6 -dados nao encontrados
-
-        try {
-            //array com dados que deverao vir do front
-            $lista = array(
-                'codigo' => '0',
-                'descricao' => '0',
-                'capacidade' => '0',
-                'dataInicio' => '0'
-            );
-
-            $json = file_get_contents('php://input');
-            $resultado = json_decode($json);
-
-            if (verificarParam($resultado, $lista) == 1) {
-                //fazendo setters
-                $this->setCodigo($resultado->codigo);
-                $this->setDescricao($resultado->descricao);
-                $this->setCapacidade($resultado->capacidade);
-                $this->setDataInicio($resultado->dataInicio);
-
-                //realizo a instrancia da model
-                $this->load->model('M_turma');
-                //atributo retorno recebe array com informações da validacao do acesso
-                $retorno = $this->M_turma->consultar(
-                    $this->getCodigo(),
-                    $this->getDescricao(),
-                    $this->getCapacidade(),
-                    $this->getDataInicio()
-                );
-            } else {
+        }catch (Exception $e) {
                 $retorno = array(
-                    'codigo' => 99,
-                    'msg' => 'Os campos vindos do frontEnd nao representam o método de consulta. Verifique.'
-                );
-            }
-        } catch (Exception $e) {
-            $retorno = array(
-                'codigo' => 00,
-                'msg' => 'ATENÇÃO: O seguinte erro aconteceu -> ' . $e->getMessage()
-            );
+                'codigo' => 0,
+                'msg' => 'ATENÇÃO: O seguinte erro aconteceu -> ',
+                        $e->getMessage());
         }
-        //retorno formato json
+
+        //Retorno no formato JSON
         echo json_encode($retorno);
-    }
-/*
-    public function alterar(){
-        //codigo, descricao e capacidade recebidos via JSON  e colocados  em variaveis
-        //retornos possiveis:
-        //1 - dados alterados corretamente
-        //2 - faltou informar codigo ou codigo zerado
-        //3 - pelo menos 1 parametro deve ser passado
-        //5 - dados nao encontrados
+    }    
+ public function consultar(){
+            //Código, Descrição e Capacidade
+            //recebidos via JSON e colocados
+            //em variáveis
+            //Retornos possíveis:
+            //1 - Dados consultados corretamente (Banco)
+            //6 - Dados não encontrados (Banco)
 
         try{
             $json = file_get_contents('php://input');
             $resultado = json_decode($json);
 
-            //array com dados que deverao vir do front
+            //Array com os dados que deverão vir do Front
             $lista = array(
-                'codigo' => '0',
-                'descricao' => '0',
-                'capacidade' => '0',
-                'dataInicio' => '0'
+                "codigo"     => '0',
+                "descricao"  => '0',
+                "capacidade" => '0',
+                "dataInicio" => '0'
             );
-            if(verificarParam($resultado, $lista) == 1) {
-                //fazendo setters
+
+            if (verificarParam($resultado, $lista) == 1) {
+                //Fazendo os setters
                 $this->setCodigo($resultado->codigo);
                 $this->setDescricao($resultado->descricao);
                 $this->setCapacidade($resultado->capacidade);
                 $this->setDataInicio($resultado->dataInicio);
 
-               //validacoes para a passagem de atributo ou campo vazio
-               if(
-                    trim($this->getCodigo()) == '' ){
-                    $retorno = array(
-                        'codigo' => 2,
-                        'msg' => 'ATENÇÃO: Código da turma não.'
-                    );
-                } else if(trim($this->getDescricao()) == '' && trim($this->getCapacidade()) == '' && trim($this->getDataInicio()) == ''){
-                    $retorno = array(
-                        'codigo' => 3,
-                        'msg' => 'ATENÇÃO: Pelo menos um parâmetro deve ser passado para alteração.'
-                    );
-                } else {
-                    //realizo a instrancia da model
-                    $this->load->model('M_turma');
-
-                    //atributo retorno recebe array com informações da validacao do acesso
-                    $retorno = $this->M_turma->alterar(
-                        $this->getCodigo(),
-                        $this->getDescricao(),
-                        $this->getCapacidade(),
-                        $this->getDataInicio()
-                    );
-                }
-            } else {
-                $retorno = array(
-                    'codigo' => 99,
-                    'msg' => 'Os campos vindos do frontEnd nao representam o método de alteração. Verifique.'
-                );
-            }
-
-        }
-        catch (Exception $e) {
-            $retorno = array(
-                'codigo' => 00,
-                'msg' => 'ATENÇÃO: O seguinte erro aconteceu -> ' . $e->getMessage()
-            );
-        }
-    }
-*/
-
-    public function alterar()
-{
-    try {
-        $json = file_get_contents('php://input');
-        $resultado = json_decode($json);
-
-        // Array com dados que devem vir do front
-        $lista = array(
-            'codigo' => '0',
-            'descricao' => '0',
-            'capacidade' => '0',
-            'dataInicio' => '0'
-        );
-
-        if (verificarParam($resultado, $lista) == 1) {
-            // Fazendo setters
-            $this->setCodigo($resultado->codigo);
-            $this->setDescricao($resultado->descricao);
-            $this->setCapacidade($resultado->capacidade);
-            $this->setDataInicio($resultado->dataInicio);
-
-            // Validações para a passagem de atributo ou campo vazio
-            if (trim($this->getCodigo()) == '') {
-                $retorno = array(
-                    'codigo' => 2,
-                    'msg' => 'ATENÇÃO: Código da turma não informado.'
-                );
-            } else if (trim($this->getDescricao()) == '' && trim($this->getCapacidade()) == '' && trim($this->getDataInicio()) == '') {
-                $retorno = array(
-                    'codigo' => 3,
-                    'msg' => 'ATENÇÃO: Pelo menos um parâmetro deve ser passado para alteração.'
-                );
-            } else {
-                // Realizo a instância da model
+                //Realizo a instância da Model
                 $this->load->model('M_turma');
 
-                // Atributo retorno recebe array com informações da validação do acesso
-                $retorno = $this->M_turma->alterar(
-                    $this->getCodigo(),
-                    $this->getDescricao(),
-                    $this->getCapacidade(),
-                    $this->getDataInicio()
+                //Atributo $retorno recebe array com informações
+                //da consulta dos dados
+                $retorno = $this->M_turma->consultar($this->getCodigo(),
+                                                    $this->getDescricao(),
+                                                    $this->getCapacidade(),
+                                                    $this->getDataInicio());
+            }else{
+                $retorno = array(
+                    'codigo' => 99,
+                    'msg' => 'Os campos vindos do FrontEnd não representam
+                            o método de consulta. Verifique.'
                 );
             }
-        } else {
-            $retorno = array(
-                'codigo' => 99,
-                'msg' => 'Os campos vindos do frontEnd não representam o método de alteração. Verifique.'
-            );
+        }catch (Exception $e) {
+            $retorno = array('codigo' => 0,
+                    'msg' => 'ATENÇÃO: O seguinte erro aconteceu -',
+                              $e->getMessage());
         }
-    } catch (Exception $e) {
-        $retorno = array(
-            'codigo' => 00,
-            'msg' => 'ATENÇÃO: O seguinte erro aconteceu -> ' . $e->getMessage()
-        );
+        //Retorno no formato JSON
+        echo json_encode($retorno);
+    }        
+    public function alterar(){
+        //Código, Descrição e Capacidade
+        //recebidos via JSON e colocados
+        //em variáveis
+        //Retornos possíveis:
+        //1 - Dado(s) alterado(s) corretamente (Banco)
+        //2 - Código não informado ou Zerado
+        //3 - Pelo menos um parâmetro deve ser passado
+        //5 - Dados não encontrados (Banco)
+    
+        try{
+            $json = file_get_contents('php://input');
+            $resultado = json_decode($json);
+            
+            //Array com os dados que deverão vir do Front
+            $lista = array(
+                "codigo" => '0',
+                "descricao" => '0',
+                "capacidade" => '0',
+                "dataInicio" => '0'
+            );
+            
+            if (verificarParam($resultado, $lista) == 1) {
+                //Fazendo os setters
+                $this->setCodigo($resultado->codigo);
+                $this->setDescricao($resultado->descricao);
+                $this->setCapacidade($resultado->capacidade);
+                $this->setDataInicio($resultado->dataInicio);
+            
+                //Validações para passagem de atributo ou campo VAZIO
+                if (trim($this->getCodigo() == '')){
+                    $retorno = array('codigo' => 2,
+                                      'msg' => 'Código não informado');
+                //Nome, Senha ou Tipo de Usuário, pelo menos 1 deles precisa ser informado.
+                }elseif(trim($this->getDescricao() == '') && trim($this->getCapacidade() == '')
+                        && trim($this->getDataInicio() == '')){
+                    $retorno = array('codigo' => 3,
+                                      'msg' => 'Pelo menos um parâmetro precisa ser passado para atualização');
+                }else{
+                //Realizo a instância da Model
+                $this->load->model('M_turma');
+            
+                //Atributo $retorno recebe array com informações
+                //da alteração dos dados
+                $retorno = $this->M_turma->alterar($this->getCodigo(),
+                                                    $this->getDescricao(),
+                                                    $this->getCapacidade(),
+                                                    $this->getDataInicio());
+                }
+            }else{
+                $retorno = array(
+                    'codigo' => 99,
+                    'msg' => 'Os campos vindos do FrontEnd não representam o método de alteração. Verifique.'
+                );
+            }
+            
+        }catch (Exception $e) {
+            $retorno = array('codigo' => 0,
+                            'msg' => 'ATENÇÃO: O seguinte erro aconteceu -> ',
+                                    $e->getMessage());
+        }
+        //Retorno no formato JSON
+        echo json_encode($retorno);
     }
-
-    // Retorno no formato JSON
-    echo json_encode($retorno);
-}
-
-
-        public function desativar(){
-            //codigo, descricao e capacidade recebidos via JSON  e colocados  em variaveis
-            //retornos possiveis:   
-            //1 - dados desativados corretamente
-            //2 - faltou informar codigo 
-            //5 - houve algum problema na destivacao da turma
-            //6 - dados nao encontrados
-
-            try{
+    
+    public function desativar(){
+        //Código da turma recebido via JSON e colocado em variável
+        //Retornos possíveis:
+        //1 - Turma desativada corretamente (Banco)
+        //2 - Código da turma não informado
+        //5 - Houve algum problema na desativação da turma
+        //6 - Dados não encontrados (Banco)
+    
+        try{
+            $json = file_get_contents('php://input');
+            $resultado = json_decode($json);
+        
+            //Array com os dados que deverão vir do Front
+            $lista = array(
+            "codigo" => '0'
+            );
+                
+            if (verificarParam($resultado, $lista) == 1) {
                 $json = file_get_contents('php://input');
                 $resultado = json_decode($json);
 
-                //array com dados que deverao vir do front
-                $lista = array(
-                    'codigo' => '0'
-                  
-                );
+                //Fazendo os setters
+                $this->setCodigo($resultado->codigo);
+
+                //Validação para do usuário que não deverá ser branco
+                if (trim($this->getCodigo() == '')){
+                    $retorno = array('codigo' => 2,
+                                    'msg' => 'Código não informado');
+                }else{
+                    //Realizo a instância da Model
+                    $this->load->model('M_turma');
                 
-                if(verificarParam($resultado, $lista) == 1) {
-                    $json = file_get_contents('php://input');
-                    $resultado = json_decode($json);
-
-                    //fazendo setters
-                    $this->setCodigo($resultado->codigo);
-                   
-
-                   //validacoes para a passagem de atributo ou campo vazio
-                   if(
-                        trim($this->getCodigo()) == '' ){
-                        $retorno = array(
-                            'codigo' => 2,
-                            'msg' => 'ATENÇÃO: Código da turma não.'
-                        );
-                    }  else {
-                        //realizo a instrancia da model
-                        $this->load->model('M_turma');
-
-                        //atributo retorno recebe array com informações da validacao do acesso
-                        $retorno = $this->M_turma->desativar(
-                            $this->getCodigo(),
-                           
-                        );
-                    }
-                } else {
-                    $retorno = array(
-                        'codigo' => 99,
-                        'msg' => 'Os campos vindos do frontEnd nao representam o método de alteração. Verifique.'
-                    );
+                    //Atributo $retorno recebe array com informações
+                    $retorno = $this->M_turma->desativar($this->getCodigo());
                 }
-
-            }
-            catch (Exception 
-                $e) {
+                
+            }else {
                 $retorno = array(
-                    'codigo' => 00,
-                    'msg' => 'ATENÇÃO: O seguinte erro aconteceu -> ' . $e->getMessage()
+                'codigo' => 99,
+                'msg' => 'Os campos vindos do FrontEnd não representam
+                o método de desativação. Verifique.'
                 );
             }
-            //retorno formato json
-            echo json_encode($retorno);
+        } catch (Exception $e) {
+             $retorno = array('codigo' => 0,
+                              'msg' => 'ATENÇÃO: O seguinte erro aconteceu -> ',
+                                        $e->getMessage());
         }
+                
+        //Retorno no formato JSON
+        echo json_encode($retorno);
+    } 
+    public function listar(){
+        // função para listar os horários no front
+        // sem necessidade de parâmetros
+        try{
+            // carrega modela
+            $this->load->model('M_turma');
+
+            // chama o método para buscar todas as turmas
+            $retorno = $this->M_turma->listarTodas();
+
+        } catch (Exception $e) {
+            $retorno = array('codigo' => 0,
+                               'msg' => 'Erro ao listar as turmas'. $e->getMessage());
+        }
+
+        // retorna as salas em formato JSON
+        echo json_encode($retorno);
     }
+}       
+
+
+                        
+                    
+
+
+
+
+

@@ -1,11 +1,10 @@
 <?php
-
 defined('BASEPATH') or exit('No direct script access allowed');
 
-//incluir classe que precisamos instanciar
+//Incluir a classe que precisaremos instanciar
 include_once("M_sala.php");
 include_once("M_horario.php");
-include_once("M_Turma.php");
+include_once("M_turma.php");
 include_once("M_professor.php");
 
 class M_mapa extends CI_Model
@@ -13,61 +12,57 @@ class M_mapa extends CI_Model
     public function inserir($dataReserva, $codSala, $codHorario, $codTurma, $codProfessor)
     {
         try {
-
-            //verifico se professor já esta cadastrado
-           
-
-            $retornoConsulta = $this->consultaReservaTotal($dataReserva, $codSala, $codHorario, $codTurma, $codProfessor);
-
-
-            if ($retornoConsulta['codigo'] == 6) {
-                //chamando o objeto sala para validação
+            //Verifico se o professor já está cadastrado
+            $retornoConsulta = $this->consultaReservaTotal($dataReserva, $codSala, $codHorario,
+                                                           $codTurma, $codProfessor);
+                                                         
+            if ($retornoConsulta['codigo'] == 6 || $retornoConsulta['codigo'] == 7) {
+                //Chamo o objeto sala para validação
                 $salaObj = new M_sala();
 
-                //chamar metodo de verificação
+                //Chamamos o metodo de verificação
                 $retornoConsultaSala = $salaObj->consultar($codSala, '', '', '');
 
-                if ($retornoConsultaSala['codigo'] == 1) {
-                    //chamo oobjeto sala para validação
 
+                if ($retornoConsultaSala['codigo'] == 1) {
+                    //Chamo o objeto horario para validação
                     $horarioObj = new M_horario();
 
-                    //chamar metodo de verificação
-                    //$retornoConsultaHorario = $horarioObj->consultaHorarioCod($codHorario);
-                    $retornoConsultaHorario = $horarioObj->consultar($codHorario, '', '', '');
+                    //Chamamos o metodo de verificação
+                    $retornoConsultaHorario = $horarioObj->consultaHorarioCod($codHorario);
+
                     if ($retornoConsultaHorario['codigo'] == 1) {
-
-                        //chamo o obj para a validaçã
+                        //Chamo o objeto turma para validação
                         $turmaObj = new M_turma();
-                        //chamar o metodo de verificação
-                        $retornoConsultaTurma = $turmaObj->consultaTurmaCod($codTurma);
-                        if ($retornoConsultaTurma['codigo'] == 1) {
 
-                            //chamo o obj para a validação
+                        //Chamamos o metodo de verificação
+                        $retornoConsultaTurma = $turmaObj->consultaTurmaCod($codTurma);
+
+                        if ($retornoConsultaTurma['codigo'] == 1) {
+                            //Chamo o objeto professor para validação
                             $professorObj = new M_professor();
 
-                            //chamar o metodo de verificação
+                            //Chamamos o metodo de verificação
                             $retornoConsultaProfessor = $professorObj->consultaProfessorCod($codProfessor);
 
                             if ($retornoConsultaProfessor['codigo'] == 1) {
-
-                                //query de inserção de dados
-                                $this->db->query("insert into tbl_mapa (data_reserva, sala, codigo_horario, codigo_turma, codigo_professor)
-                                values ('" . $this->db->escape_str($dataReserva) . "', 
-                                       " . $this->db->escape($codSala) . ", 
-                                       " . $this->db->escape($codHorario) . ", 
-                                       " . $this->db->escape($codTurma) . ", 
-                                       " . $this->db->escape($codProfessor) . ")");
-                                //verifico se a inserção foi realizada com sucesso
+                                //Query de inserção dos dados
+                                $this->db->query("insert into tbl_mapa (datareserva, sala, codigo_horario,
+                                                    codigo_turma, codigo_professor)
+                                                    values ('". $dataReserva."', $codSala, $codHorario,
+                                                    $codTurma, $codProfessor)");
+                            
+                                //Verificar se a inserção ocorreu com sucesso
                                 if ($this->db->affected_rows() > 0) {
-                                    return array(
+                                    $dados = array(
                                         'codigo' => 1,
-                                        'mensagem' => 'Reserva cadastrada corretamente'
+                                        'msg' => 'Agendamento cadastrado corretamente.'
                                     );
                                 } else {
-                                    return array(
+                                    $dados = array(
                                         'codigo' => 8,
-                                        "msg" => 'Houve um problema na inserção da tabela de agendamento'
+                                        'msg' => 'Houve algum problema na inserção na tabela de
+                                                agendamento.'
                                     );
                                 }
                             } else {
@@ -83,290 +78,421 @@ class M_mapa extends CI_Model
                             );
                         }
                     } else {
+
                         $dados = array(
                             'codigo' => $retornoConsultaHorario['codigo'],
                             'msg' => $retornoConsultaHorario['msg']
                         );
                     }
                 } else {
+
                     $dados = array(
                         'codigo' => $retornoConsultaSala['codigo'],
                         'msg' => $retornoConsultaSala['msg']
                     );
                 }
-            } 
-            else {
-                return $retornoConsulta;
-            }
+            } else {
+
+                $dados = array(
+                    'codigo' => 7,
+                    'msg' => 'Agendamento já cadastrado no sistema.'
+                );
+            }                            
         } catch (Exception $e) {
             $dados = array(
                 'codigo' => 00,
-                "msg" => 'ATENÇÃO: o segiunte erro aconteceu: ' . $e->getMessage()
+                'msg' => 'ATENÇÃO: O seguinte erro aconteceu - > ',
+                $e->getMessage(),
+                "\n"
             );
         }
-        //enviao array de com as infos tratadas acima pela etsrutura de decisão if else
+        //Envia o array $dados com as informações tratadas
+        //acima pela estrutura de decisão if
         return $dados;
     }
 
-    private function consultaReservaTotal($dataReserva, $codSala, $codHorario, $codTurma, $codProfessor)
+    private function consultaReservaTotal($dataReserva, $codSala, $codHorario)
     {
         try {
-            // Verificação de agendamento exato
-            $sql = "SELECT * FROM tbl_mapa 
-                    WHERE data_reserva = '" . $this->db->escape_str($dataReserva) . "'
-                    AND sala = " . $this->db->escape($codSala) . "
-                    AND codigo_horario = " . $this->db->escape($codHorario) . "
-                    AND codigo_turma = " . $this->db->escape($codTurma) . "
-                    AND codigo_professor = " . $this->db->escape($codProfessor);
-            
-            $retornoExato = $this->db->query($sql);
-            
-            if ($retornoExato->num_rows() > 0) {
-                $linha = $retornoExato->row();
-                return array(
-                    'codigo' => (isset($linha->estatus) && $linha->estatus == "D") ? 7 : 1,
-                    'msg' => (isset($linha->estatus) && $linha->estatus == "D") ? 
-                        'Agendamento desativado no sistema.' : 
-                        'Agendamento já cadastrado no sistema'
-                );
-            }
-    
-            // Verificação de conflito de horário
-            $sql = "SELECT h.hora_ini, h.hora_fim 
-                    FROM tbl_horario h 
-                    WHERE h.codigo = " . $this->db->escape($codHorario);
-            
+            //Query para verificar a hora inicial e final daquele determinado horário
+            $sql = "select * from tbl_horario
+                    where codigo = $codHorario";
+
             $retornoHorario = $this->db->query($sql);
-            
+
             if ($retornoHorario->num_rows() > 0) {
                 $linhaHr = $retornoHorario->row();
                 $horaInicial = $linhaHr->hora_ini;
                 $horaFinal = $linhaHr->hora_fim;
-    
-                $sql = "SELECT m.* FROM tbl_mapa m
-                        JOIN tbl_horario h ON m.codigo_horario = h.codigo
-                        WHERE m.data_reserva = '" . $this->db->escape_str($dataReserva) . "'
-                        AND m.sala = " . $this->db->escape($codSala) . "
-                        AND h.hora_fim > '" . $horaInicial . "'
-                        AND h.hora_ini < '" . $horaFinal . "'
-                        AND (m.estatus IS NULL OR m.estatus != 'D')";
-                
-                $retornoConflito = $this->db->query($sql);
-                
-                if ($retornoConflito->num_rows() > 0) {
-                    return array(
-                        'codigo' => 1,
-                        'msg' => 'Já existe um agendamento conflitante para esta sala e horário'
+
+                //Query para consultar dados de acordo com parâmetros passados
+                $sql = "select * from tbl_mapa m, tbl_horario h
+                        where m.datareserva = '" . $dataReserva . "'
+                        and m.sala = $codSala
+                        and m.codigo_horario = h.codigo
+                        and (h.hora_fim <= '" . $horaInicial . "'
+                        and h.hora_ini >= '" . $horaFinal . "')";
+                $retornoMapa = $this->db->query($sql);
+
+                //Verificar se a consulta ocorreu com sucesso
+                if ($retornoMapa->num_rows() > 0) {
+                    $linha = $retornoMapa->row();
+
+                    if (trim($linha->estatus) == "D") {
+                        $dados = array(
+                            'codigo' => 7,
+                            'msg' => 'Agendamento desativado no sistema.'
+                        );
+                    } else {
+                        $dados = array(
+                            'codigo' => 1,
+                            'msg' => "A data de: " . $dataReserva . " está ocupada para esta sala"
+                        );
+                    }
+                } else {
+                    $dados = array(
+                        'codigo' => 6,
+                        'msg' => 'Reserva não encontrada.'
                     );
                 }
             }
-    
-            return array(
-                'codigo' => 6,
-                'msg' => 'Reserva não encontrada'
-            );
-    
         } catch (Exception $e) {
-            return array(
+            $dados = array(
                 'codigo' => 00,
-                "msg" => 'ATENÇÃO: o seguinte erro aconteceu: ' . $e->getMessage()
+                'msg' => 'ATENÇÃO: O seguinte erro aconteceu -> ',
+                 $e->getMessage(),
+                "\n"
             );
         }
+        //Envia o array $dados com as informações tratadas
+        //pela estrutura de decisão if
+        return $dados;
     }
+
     public function consultar($codigo, $dataReserva, $codSala, $codHorario, $codTurma, $codProfessor)
     {
         try {
-            //query para consultar dados de acordo com parametros passados
-         $sql = "select m.codigo, date_format(m.data_reserva,'%d-%m-%Y') datareservabra, data_reserva,
-        m. sala, s.descricao descsala, m.codigo_horario,
-        h.descricao deshorario, m.codigo_turma, t.descricao descturma, m.codigo_professor,
-        p.nome nome_professor
-        from tbl_mapa m, tbl_professor p, tbl_horario h, tbl_turma t, tbl_sala s
-        where m.estatus = ''
-        and m.codigo_professor = p.codigo
-        and m.codigo_horario = h.codigo
-        and m.codigo_turma = t.codigo
-        and m.sala = s.codigo";
-        if (trim($codigo) != '') {
-            $sql .= " AND m.codigo = " . $this->db->escape($codigo);
-        }
-        if (trim($dataReserva) != '') {
-            $sql .= " AND m.data_reserva = '" . $this->db->escape_str($dataReserva) . "'";
-        }
-        if (trim($codSala) != '') {
-            $sql .= " AND m.sala = " . $this->db->escape($codSala);
-        }
-        if (trim($codHorario) != '') {
-            $sql .= " AND m.codigo_horario = " . $this->db->escape($codHorario);
-        }
-        if (trim($codTurma) != '') {
-            $sql .= " AND m.codigo_turma = " . $this->db->escape($codTurma);
-        }
-        if (trim($codProfessor) != '') {
-            $sql .= " AND m.codigo_professor = " . $this->db->escape($codProfessor);
-        }
-            //$sql = $sql . "order by m.datareserva, h.hora_ini, m.codigo_horario, m_sala ";
-         
-            $sql .= " ORDER BY m.data_reserva, h.hora_ini, m.codigo_horario, m.sala";
+            //Query para consultar dados de acordo com parâmetros passados
+            $sql = "select m.codigo, date_format(m.datareserva, '%d-%m-%Y') datareservabra, datareserva,
+                    m.sala, s.descricao descsala, m.codigo_horario,
+                    h.descricao deschorario, m.codigo_turma, t.descricao descturma, m.codigo_professor,
+                    p.nome nome_professor
+                    from tbl_mapa m, tbl_professor p, tbl_horario h, tbl_turma t, tbl_sala s
+                    where m.estatus = ''
+                        and m.codigo_professor = p.codigo
+                        and m.codigo_horario = h.codigo
+                        and m.codigo_turma = t.codigo
+                        and m.sala = s.codigo ";
+
+            if (trim($codigo) != '') {
+            $sql = $sql . "and m.codigo = $codigo ";
+            }
+
+            if (trim($dataReserva) != '') {
+            $sql = $sql . "and m.datareserva = '" . $dataReserva . "' ";
+            }
+
+            if (trim($codSala) != '') {
+            $sql = $sql . "and m.sala = $codSala ";
+            }
+
+            if (trim($codHorario) != '') {
+            $sql = $sql . "and m.codigo_horario = $codHorario ";
+            }
+
+            if (trim($codTurma) != '') {
+            $sql = $sql . "and m.codigo_turma = $codTurma ";
+            }
+
+            if (trim($codProfessor) != '') {
+            $sql = $sql . "and m.codigo_professor = $codProfessor ";
+            }
+
+            $sql = $sql . " order by m.datareserva, h.hora_ini, m.codigo_horario, m.sala ";
+
             $retorno = $this->db->query($sql);
 
-            //verifica se consulta ocorreu com sucesso
+            //Verificar se a consulta ocorreu com sucesso
             if ($retorno->num_rows() > 0) {
                 $dados = array(
                     'codigo' => 1,
-                    "msg" => 'Consulta efetuada com sucesso',
-                    "dados" => $retorno->result()
+                    'msg' => 'Consulta efetuada com sucesso.',
+                    'dados' => $retorno->result()
                 );
             } else {
                 $dados = array(
                     'codigo' => 6,
-                    "msg" => 'Agedamentos não encontrados'
+                    'msg' => 'Agendamento não encontrado.'
                 );
             }
         } catch (Exception $e) {
             $dados = array(
                 'codigo' => 00,
-                "msg" => 'ATENÇÃO: o seguinte erro aconteceu: ' . $e->getMessage(),
+                'msg' => 'ATENÇÃO: O seguinte erro aconteceu -> ',
+                 $e->getMessage(),
                 "\n"
             );
         }
-        //envia array de dados com as infos tratadas    
+        //Envia o array $dados com as informações tratadas
+        //pela estrutura de decisão if
         return $dados;
     }
+
     public function alterar($codigo, $dataReserva, $codSala, $codHorario, $codTurma, $codProfessor)
     {
         try {
-            // Primeiro verifica se o agendamento existe
-            $consulta = $this->consultar($codigo, '', '', '', '', '');
-            if ($consulta['codigo'] != 1) {
-                return array(
-                    'codigo' => 8,
-                    'msg' => 'Agendamento não encontrado no sistema'
-                );
-            }
-    
-            // Inicia a construção da query
-            $query = "UPDATE tbl_mapa SET ";
-            $updates = array();
-    
-            // Adiciona apenas os campos que foram informados
-            if (!empty($dataReserva)) {
-                $updates[] = "data_reserva = '" . $this->db->escape_str($dataReserva) . "'";
-            }
-            if (!empty($codSala)) {
-                // Valida a sala
-                $salaObj = new M_sala();
-                if ($salaObj->consultar($codSala, '', '', '')['codigo'] != 1) {
-                    return array(
-                        'codigo' => 4,
-                        'msg' => 'Sala inválida'
-                    );
+            //Verifico se o professor já está cadastrado
+            
+            $retornoConsultaCodigo = $this->consultar(
+                $codigo,
+                "",
+                "",
+                "",
+                "",
+                ""
+            );
+            
+            if ($retornoConsultaCodigo['codigo'] == 1) {
+            //Inicio a query para atualização
+            $query = "update tbl_mapa set ";
+            
+                if ($dataReserva != "") {
+                    $query .= "datareserva = '$dataReserva', ";
                 }
-                $updates[] = "sala = " . $this->db->escape($codSala);
-            }
-            if (!empty($codHorario)) {
-                // Valida o horário
-                $horarioObj = new M_horario();
-                if ($horarioObj->consultar($codHorario, '', '', '')['codigo'] != 1) {
-                    return array(
-                        'codigo' => 5,
-                        'msg' => 'Horário inválido'
-                    );
+                
+                if ($codSala != "") {
+                    //Chamo o objeto sala para validação
+                    $salaObj = new M_sala();
+                
+                    //chamar o método de verificação
+                    $retornoConsultaSala = $salaObj->consultar($codSala, '', '', '');
+                
+                    if ($retornoConsultaSala['codigo'] == 1) {
+                        $query .= "sala = $codSala, ";
+                    } else {
+                        $dados = array(
+                            'codigo' => $retornoConsultaSala['codigo'],
+                            'msg' => $retornoConsultaSala['msg']
+                        );
+                    }
                 }
-                $updates[] = "codigo_horario = " . $this->db->escape($codHorario);
-            }
-            if (!empty($codTurma)) {
-                // Valida a turma
-                $turmaObj = new M_turma();
-                if ($turmaObj->consultaTurmaCod($codTurma)['codigo'] != 1) {
-                    return array(
-                        'codigo' => 6,
-                        'msg' => 'Turma inválida'
-                    );
+                
+                if ($codHorario != "") {
+                    //Chamo o objeto sala para validação
+                    $horarioObj = new M_horario();
+                
+                    //chamar o método de verificação
+                    $retornoConsultaHorario = $horarioObj->consultaHorarioCod($codHorario);
+                
+                    if ($retornoConsultaHorario['codigo'] == 1) {
+                        $query .= "codigo_horario = $codHorario, ";
+                    } else {
+                        $dados = array(
+                            'codigo' => $retornoConsultaHorario['codigo'],
+                            'msg' => $retornoConsultaHorario['msg']
+                        );
+                    }
                 }
-                $updates[] = "codigo_turma = " . $this->db->escape($codTurma);
-            }
-            if (!empty($codProfessor)) {
-                // Valida o professor
-                $professorObj = new M_professor();
-                if ($professorObj->consultaProfessorCod($codProfessor)['codigo'] != 1) {
-                    return array(
-                        'codigo' => 7,
-                        'msg' => 'Professor inválido'
-                    );
+
+                if ($codTurma != "") {
+                    //Chamo o objeto sala para validação
+                    $turmaObj = new M_turma();
+                
+                    //chamar o método de verificação
+                    $retornoConsultaTurma = $turmaObj->consultaTurmaCod($codTurma);
+                
+                    if ($retornoConsultaTurma['codigo'] == 1) {
+                        $query .= "codigo_turma = $codTurma, ";
+                    } else {
+                        $dados = array(
+                            'codigo' => $retornoConsultaTurma['codigo'],
+                            'msg' => $retornoConsultaTurma['msg']
+                        );
+                    }
                 }
-                $updates[] = "codigo_professor = " . $this->db->escape($codProfessor);
-            }
-    
-            // Se não há campos para atualizar
-            if (empty($updates)) {
-                return array(
-                    'codigo' => 9,
-                    'msg' => 'Nenhum campo válido para atualização'
-                );
-            }
-    
-            // Monta a query final
-            $query .= implode(", ", $updates) . " WHERE codigo = " . $this->db->escape($codigo);
-    
-            // Executa a atualização
-            $this->db->query($query);
-    
-            if ($this->db->affected_rows() > 0) {
-                return array(
-                    'codigo' => 1,
-                    'msg' => 'Agendamento alterado com sucesso'
-                );
+                
+                if ($codProfessor != "") {
+                    //Chamo o objeto sala para validação
+                    $professorObj = new M_professor();
+                
+                    //chamar o método de verificação
+                    $retornoConsultaProfessor = $professorObj->consultaProfessorCod($codProfessor);
+                
+                    if ($retornoConsultaProfessor['codigo'] == 1) {
+                        $query .= "codigo_professor = $codProfessor, ";
+                
+                        //Termino a concatenação da query
+                        $queryFinal = rtrim($query, ", ") . " where codigo = $codigo";
+                
+                        //Executo a Query de atualização dos dados
+                        $this->db->query($queryFinal);
+                
+                        //Verificar se a atualização ocorreu com sucesso
+                        if ($this->db->affected_rows() > 0) {
+                            $dados = array(
+                                'codigo' => 1,
+                                'msg' => 'Agendamento alterado corretamente.'
+                            );
+                        } else {
+                            $dados = array(
+                                'codigo' => 8,
+                                'msg' => 'Houve algum problema na alteração na tabela de agendamento.'
+                            );
+                        }
+                    } else {
+                        $dados = array(
+                            'codigo' => $retornoConsultaProfessor['codigo'],
+                            'msg' => $retornoConsultaProfessor['msg']
+                        );
+                    }
+                }    
             } else {
-                return array(
-                    'codigo' => 9,
-                    'msg' => 'Nenhuma alteração realizada ou dados idênticos aos existentes'
+
+                $dados = array(
+                    'codigo' => 8,
+                    'msg' => 'Agendamento não cadastrado no sistema.'
                 );
             }
-    
         } catch (Exception $e) {
-            return array(
+            $dados = array(
                 'codigo' => 00,
-                'msg' => 'ATENÇÃO: o seguinte erro aconteceu: ' . $e->getMessage()
+                'msg' => 'ATENÇÃO: O seguinte erro aconteceu -> ' .
+                    $e->getMessage() .
+                    '\n'
             );
         }
+        //Envia o array $dados com as informações tratadas
+        //acima pela estrutura de decisão if
+        return $dados;
     }
 
     public function desativar($codigo)
     {
         try {
-            // Primeiro verifica se o agendamento existe
-            $consulta = $this->consultar($codigo, '', '', '', '', '');
-            if ($consulta['codigo'] != 1) {
-                return array(
-                    'codigo' => 6,
-                    'msg' => 'Agendamento não cadastrado'
-                );
-            }
-    
-            // Query de desativação (DELETE ou UPDATE conforme sua necessidade)
-            // Opção 1: DELETE físico
-            $this->db->query("DELETE FROM tbl_mapa WHERE codigo = " . $this->db->escape($codigo));
-            
-            // Opção 2: UPDATE lógico (se você mantém histórico)
-            // $this->db->query("UPDATE tbl_mapa SET estatus = 'D' WHERE codigo = " . $this->db->escape($codigo));
-    
-            if ($this->db->affected_rows() > 0) {
-                return array(
-                    'codigo' => 1,
-                    'msg' => 'Agendamento desativado corretamente'
-                );
+            //Verifico se o agendamento já está cadastrado
+            $retornoConsulta = $this->consultar(
+                $codigo,
+                "",
+                "",
+                "",
+                "",
+                ""
+            );
+
+            if ($retornoConsulta['codigo'] == 1) {
+
+             //query de atualização dos dados
+                $this->db->query("delete from tbl_mapa
+                                      where codigo = $codigo"); 
+
+                //Verificar se a atualização ocorreu com sucesso
+                if ($this->db->affected_rows() > 0) {
+                    $dados = array(
+                        'codigo' => 1,
+                        'msg' => 'Agendamento DESATIVADO corretamente.'
+                    );
+                } else {
+                    $dados = array(
+                        'codigo' => 5,
+                        'msg' => 'Houve algum problema na DESATIVAÇÃO do Agendamento.'
+                    );
+                }
             } else {
-                return array(
-                    'codigo' => 5,
-                    'msg' => 'Houve um problema na desativação do agendamento'
+                $dados = array(
+                    'codigo' => 6,
+                    'msg' => 'Agendamento não cadastrado no Sistema, não pode excluir.'
                 );
             }
         } catch (Exception $e) {
-            return array(
+            $dados = array(
                 'codigo' => 00,
-                'msg' => 'ATENÇÃO: o seguinte erro aconteceu: ' . $e->getMessage()
+                'msg' => 'ATENÇÃO: O seguinte erro aconteceu -> ' .
+                        $e->getMessage(),
+                "\n"
             );
         }
+
+        //  Envia o array $dados com as informações tratadas
+       //acima pela estrutura de decisão if
+       return $dados;
     }
-}
+
+    public function inserirNovo($codSala, $codHorario, $codTurma, $codProfessor, $dataInicio, $dataFim, $diaSemana)
+    {
+        try {
+             $salaObj = new M_sala();
+             $retornoConsultaSala = $salaObj->consultar($codSala, '', '','');
+                                                                                                                  
+            if ($retornoConsultaSala['codigo'] == 1) {
+                $horarioObj = new M_horario();
+                $retornoConsultaHorario = $horarioObj->consultaHorarioCod($codHorario);
+
+                if ($retornoConsultaHorario['codigo'] == 1) {
+                     $turmaObj = new M_turma();   //Chamamos o metodo de verificação
+                    $retornoConsultaTurma = $turmaObj->consultaTurmaCod($codTurma);
+
+                    if ($retornoConsultaTurma['codigo'] == 1) {                         //Chamo o objeto turma para validação
+                        $professorObj = new M_professor();                         //Chamamos o metodo de verificação
+                        $retornoConsultaProfessor = $professorObj->consultaProfessorCod($codProfessor);
+
+                            if ($retornoConsultaProfessor['codigo'] == 1) {
+                                $datasCorrespondentes = [];
+                                $datasFora = [];
+
+                                for($i = 0; $i < count($diaSemana); $i++){
+                                    for ($dataAtual = strtotime($dataInicio); $dataAtual <= strtotime($dataFim); $dataAtual = strtotime("+1 day", $dataAtual)){
+                                        $retornoConsulta = $this->consultaReservaTotal(date("Y-m-d", $dataAtual), $codSala, $codHorario);
+
+                                        if ($retornoConsulta['codigo'] == 1 || $retornoConsulta['codigo'] == 7) {
+                                            if (isset($retornoConsulta['status']) && $retornoConsulta['status'] == 'D'){
+                                                if (date ("w", $dataAtual) == $diaSemana[$i]){
+                                                    $datasCorrespondentes[] = date("Y-m-d", $dataAtual);
+                                                }
+                                            } else{
+                                                $datasFora[] = date("d-m-Y", $dataAtual). ". ";
+                                            }
+                                        } else{
+                                            if (date ("w", $dataAtual) == $diaSemana[$i]){
+                                                $datasCorrespondentes[] = date("Y-m-d", $dataAtual);
+                                            }
+                                        }
+                                    }
+                                }
+                                if (!empty($datasCorrespondentes)){
+                                    foreach ($datasCorrespondentes as $data){
+                                        $this->db->query("INSERT INTO tbl_mapa (dataReserva, sala, codigo_horario, codigo_turma, codigo_professor)
+                                        VALUES ('" . $data . "', $codSala, $codHorario, $codTurma, $codProfessor)");
+                                    }
+                                
+                                   if ($this->db->affected_rows() > 0){
+                                      $dados = array(
+                                          'codigo' => 1,
+                                          'msg' => !empty($datasFora) ? 'Agendamento cadastrado, porém a(s) data(s) ' .
+                                          substr(join($datasFora), 0, -2). ' já possuem agendamentos.' : 'Agendamento cadastrado corretamente.'
+                                      );
+                                    }
+                                }else{
+                                    $dados = array(
+                                          'codigo' => empty($datasFora) ? 8 : 15,
+                                          'msg' => empty($datasFora) ? 'Estas datas de agendamento já constamno sistema.' : 'A(s) datas(s) ' .
+                                          substr(join($datasFora), 0, -2) . ' já possuem agendamentos e não podem ser incluídas.'    
+                                    );
+                                }
+                            } else {
+                                $dados = array('codigo' => $retornoConsultaProfessor['codigo'], 'msg' => $retornoConsultaProfessor['msg']);
+                            }
+                    } else {
+                            $dados = array('codigo' => $retornoConsultaTurma['codigo'], 'msg' => $retornoConsultaTurma['msg']);
+                    }
+                } else {
+                    $dados = array('codigo' => $retornoConsultaHorario['codigo'], 'msg' => $retornoConsultaHorario['msg']);
+                }
+            } else {
+                    $dados = array('codigo' => $retornoConsultaSala['codigo'], 'msg' => $retornoConsultaSala['msg']);
+            }
+        } catch (Exception $e) {
+            $dados = array('codigo' => 0, 'msg' => 'ATENÇÃO: O seguinte erro aconteceu - > ' . $e->getMessage());
+        }
+        return $dados;
+    }
+}   

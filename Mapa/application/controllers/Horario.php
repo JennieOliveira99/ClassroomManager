@@ -1,101 +1,82 @@
 <?php
-defined('BASEPATH') or exit('No direct script access allowed');
+defined('BASEPATH') OR exit('No direct script access allowed');
 
-class Horario extends CI_Controller
-{
-
-    //atributos privados da classe
-    //Atributos privados da Classe
+class Horario extends CI_Controller {
+    // Atributos privados da classe
     private $codigo;
     private $descricao;
     private $horaInicial;
     private $horaFinal;
     private $estatus;
 
-    //Getters dos atributos
-
-    public function getCodigo()
+    // Getters dos atributos
+    public function getCodigo() 
     {
         return $this->codigo;
     }
-
-    public function getDescricao()
+    
+    public function getHoraInicial() 
+    {
+        return $this->horaInicial;
+    }
+    
+    public function getHoraFinal() 
+    {
+        return $this->horaFinal;
+    }
+    public function getDescricao() 
     {
         return $this->descricao;
     }
 
-    public function getHoraInicial()
-    {
-        return $this->horaInicial;
-    }
-
-    public function getHoraFinal()
-    {
-        return $this->horaFinal;
-    }
-
-    public function getEstatus()
-    {
+    
+    public function getEstatus() 
+    { 
         return $this->estatus;
     }
 
-    //Setters dos atributos
-
-    public function setCodigo($codigo)
+    // Setters dos atributos
+    public function setCodigo($codigoFront) 
     {
-        $this->codigo = $codigo;
+        $this->codigo = $codigoFront;
+    }
+    public function setDescricao($descricaoFront) 
+    {
+        $this->descricao = $descricaoFront;
     }
 
-    /**
-     * @param $descricao
-     */
-    public function setDescricao($descricao)
+    public function setHoraInicial($horaInicialFront) 
     {
-        $this->descricao = $descricao;
+        $this->horaInicial = $horaInicialFront;
     }
 
-    /**
-     * @param $horaInicial
-     */
-    public function setHoraInicial($horaInicial)
+    public function setHoraFinal($horaFinalFront) 
     {
-        $this->horaInicial = $horaInicial;
+        $this->horaFinal = $horaFinalFront;
     }
 
-    /**
-     * @param $horaFinal
-     */
-    public function setHoraFinal($horaFinal)
-    {
-        $this->horaFinal = $horaFinal;
+    public function setEstatus($estatusFront) 
+    { 
+        $this->estatus = $estatusFront;
     }
 
-    /**
-     * @param $estatus
-     */
-    public function setEstatus($estatus)
-    {
-        $this->estatus = $estatus;
-    }
+    public function inserir(){
+        //Horário Inicial e Horário Final
+        //recebidos via JSON e colocados em variáveis
+        //Retornos possíveis:
+        //1 - Horário cadastrado corretamente (Banco)
+        //2 - Faltou informar a Descricao (FrontEnd)
+        //3 - Faltou informar o Horário Inicial (FrontEnd)
+        //4 - Faltou informar o Horário Final (FrontEnd)
+        //5 - Horário já cadastrado no sistema
+        //6 - Houve algum problema no insert da tabela (Banco)
 
-    public function inserir()
-    {
-        /*
-    horario inicial e final recebidos via JSON e colocados em variaveis:
-    1- horario cadastrado corretamente no banco
-    2- faltou informar descricao(forntednd)
-    3- faltou horario inicial
-    4- faltou horario final
-    5- horario ja cadastrado no sistema
-    6- hiuve algum problema no insert da tabel (BD)
-
-    */
-
-        try {
-            //recebendop dados via  json  e atribuind à variaveis
+        try{
+            //Dados recebidos via JSON
+            //e colocados em atributos
             $json = file_get_contents('php://input');
             $resultado = json_decode($json);
-            //array com dados que deverao vir do front
+            //Array com os dados que deverão vir do Front
             $lista = array(
                 "descricao" => '0',
                 "horaInicial" => '0',
@@ -103,191 +84,253 @@ class Horario extends CI_Controller
             );
 
             if (verificarParam($resultado, $lista) == 1) {
-                //fazendo setters
+                //Fazendo os setters
                 $this->setDescricao($resultado->descricao);
                 $this->setHoraInicial($resultado->horaInicial);
                 $this->setHoraFinal($resultado->horaFinal);
 
-                //fazendo validacao para saber se todos os dados foram enviados
-                if (trim($this->getDescricao()) == '') {
-                    $retorno = array(
-                        'codigo' => '2',
-                        'msg' => 'Descricao nao informada.'
-
-                    );
-                } elseif (trim($this->getHoraInicial()) == '') {
-                    $retorno = array(
-                        'codigo' => '3',
-                        'msg' => 'Hora Inicial nao informada.'
-
-                    );
-                } elseif (trim($this->getHoraFinal()) == '') {
-                    $retorno = array(
-                        'codigo' => '4',
-                        'msg' => 'Hora final nao informada.');
-                } else {
-                    //realizo a instrancia da model
+                //Faremos uma validação para sabermos se todos os dados
+                //foram enviados
+                if (trim($this->getDescricao()) == ''){
+                    $retorno = array('codigo' => 2, 
+                                    'msg' => 'Descrição não informada.');
+                }elseif (trim($this->getHoraInicial()) == ''){
+                    $retorno = array('codigo' => 3, 
+                                     'msg' => 'Hora inicial não informada.');
+                }elseif (trim($this->getHoraFinal()) == ''){
+                    $retorno = array('codigo' => 4, 
+                                      'msg' => 'Hora final não informada.');
+                }else{
+                    //Realizo a instância da Model
                     $this->load->model('M_horario');
-                    //atributo retorno recebe array com informações da validacao do acesso
-                    $retorno = $this->M_horario->inserir(
-                        $this->getDescricao(),
-                        $this->getHoraInicial(),
-                        $this->getHoraFinal(),
 
+                    //Atributo $retorno recebe array com informações
+                    //da validação do acesso
+                    $retorno = $this->M_horario->inserir($this->getDescricao(),
+                                                         $this->getHoraInicial(),
+                                                         $this->getHoraFinal());
+                }
+            }else {
+                $retorno = array(
+                    'codigo' => 99,
+                    'msg' => 'Os campos vindo do FrontEnd não representam 
+                              o método de login. Verifique.'
                     );
                 }
-            } else {
-                $retorno = array(
-                    'codigo' => '99',
-                    'msg' => 'Os campos vindos do frontEnd nao representam o método de login.Verifique.'
-                );
-            }
-        } catch (Exception $e) {
-            $retorno = array(
-                'codigo' => '0',
-                'msg' => 'ATENÇÃO: O seguinte erro aconteceu: ', $e->getMessage());
-        }
 
-        //retorno formato json
+        }catch (Exception $e) {
+                $retorno = array('codigo'=> 0,
+                                'msg' => 'ATENÇÃO: O seguinte erro aconteceu -> ', 
+                                        $e->getMessage());
+        }    
+
+        //Retorno no formato JSON
         echo json_encode($retorno);
     }
-    public function consultar()
-{
-    try {
-        // Recebendo dados via JSON
-        $json = file_get_contents('php://input');
-        $resultado = json_decode($json);
+    
+    public function consultar(){
 
-        // Verificando se os dados foram recebidos corretamente
-        if ($resultado === null) {
-            throw new Exception("Dados JSON inválidos ou não fornecidos.");
-        }
-
-        // Extraindo parâmetros do JSON
-        $codigo = isset($resultado->codigo) ? trim($resultado->codigo) : '';
-        $descricao = isset($resultado->descricao) ? trim($resultado->descricao) : '';
-        $horaInicial = isset($resultado->horaInicial) ? trim($resultado->horaInicial) : '';
-        $horaFinal = isset($resultado->horaFinal) ? trim($resultado->horaFinal) : '';
-
-        // Carregando a model
-        $this->load->model('M_horario');
-
-        // Chamando o método de consulta da model
-        $retorno = $this->M_horario->consultar($codigo, $descricao, $horaInicial, $horaFinal);
-
-    } catch (Exception $e) {
-        $retorno = array(
-            'codigo' => '0',
-            'msg' => 'ATENÇÃO: O seguinte erro aconteceu: ' . $e->getMessage()
-        );
-    }
-
-    // Retorno no formato JSON
-    echo json_encode($retorno);
-}
-public function alterar()
-{
-    try {
-        // Recebendo dados via JSON
-        $json = file_get_contents('php://input');
-        $resultado = json_decode($json);
-
-        // Verificando se os dados foram recebidos corretamente
-        if ($resultado === null) {
-            throw new Exception("Dados JSON inválidos ou não fornecidos.");
-        }
-
-        // Extraindo parâmetros do JSON
-        $codigo = isset($resultado->codigo) ? trim($resultado->codigo) : '';
-        $descricao = isset($resultado->descricao) ? trim($resultado->descricao) : '';
-        $horaInicial = isset($resultado->horaInicial) ? trim($resultado->horaInicial) : '';
-        $horaFinal = isset($resultado->horaFinal) ? trim($resultado->horaFinal) : '';
-
-        // Verificando se o código foi informado
-        if (empty($codigo)) {
-            $retorno = array(
-                'codigo' => 2,
-                'msg' => 'Código não informado.'
-            );
-        } 
-        // Verificando se pelo menos um dos parâmetros (descricao, horaInicial, horaFinal) foi informado
-        elseif (empty($descricao) && empty($horaInicial) && empty($horaFinal)) {
-            $retorno = array(
-                'codigo' => 3,
-                'msg' => 'Pelo menos 1 parâmetro deve ser informado para a atualização.'
-            );
-        } else {
-            // Carregando a model
-            $this->load->model('M_horario');
-
-            // Chamando o método de alteração da model
-            $retorno = $this->M_horario->alterar($codigo, $descricao, $horaInicial, $horaFinal);
-        }
-    } catch (Exception $e) {
-        $retorno = array(
-            'codigo' => '0',
-            'msg' => 'ATENÇÃO: O seguinte erro aconteceu: ' . $e->getMessage()
-        );
-    }
-
-    // Retorno no formato JSON
-    echo json_encode($retorno);
-}
-
-    public function desativar()
-    {
-        /*
-        Código recebido via JSON e colocado em variável.
-        Retornos possíveis:
-        1 - Horário desativado corretamente (Banco)
-        2 - Código do horário não informado ou zerado
-        5 - Houve algum problema ao desativar o horário (Banco)
-        */
+        //Código
+        //recebido via JSON e colocados
+        //em variáveis
+        //Retornos possíveis:
+        //1 - Dados consultados corretamente (Banco)
+        //6 - Dados não encontrados (Banco)
+    
         try {
-            // Recebendo dados via JSON e atribuindo à variável
             $json = file_get_contents('php://input');
             $resultado = json_decode($json);
     
-            // Array com dados que devem vir do front
+            //Array com os dados que deverão vir do Front
             $lista = array(
-                "codigo" => '0'
+                'codigo' => '0',
+                "descricao" => '0',
+                "horaInicial" => '0',
+                "horaFinal" => '0'
+            );
+            
+            if (verificarParam($resultado, $lista) == 1) {
+                //Fazendo os setters
+                $this->setCodigo($resultado->codigo);
+                $this->setDescricao($resultado->descricao);
+                $this->setHoraInicial($resultado->horaInicial);
+                $this->setHoraFinal($resultado->horaFinal);
+            
+                //Realizo a instância da Model
+                $this->load->model('M_horario');
+            
+                //Atributo $retorno recebe array com informações
+                //da consulta dos dados
+                $retorno = $this->M_horario->consultar($this->getCodigo(),
+                $this->getDescricao(),
+                $this->getHoraInicial(),
+                $this->getHoraFinal());
+            }else{
+                $retorno = array(
+                    'codigo' => 99,
+                    'msg' => 'Os campos vindos do FrontEnd não representam o método de login. Verifique.'
+                );
+            }
+            
+        } catch (Exception $e) {
+            $retorno = array(
+                'codigo' => 0,
+                'msg' => 'ATENÇÃO: O seguinte erro aconteceu -> ' , $e->getMessage());
+        }
+            
+            //Retorno no formato JSON
+            echo json_encode($retorno);
+    }
+
+    public function alterar(){
+        //Código, horário inicial e horário final
+        //recebidos via JSON e colocados
+        //em variáveis
+        //Retornos possíveis:
+        //1 - Dado(s) alterado(s) corretamente (Banco)
+        //2 - Código da sala não informado ou Zerado
+        //3 - Pelo menos um parâmetro precisa ser informado
+        //    (descrição, hora inicial ou hora final)
+        //4 - Horário não cadastrado no sistema
+        //5 - Houve algum problema no salvamento dos dados
+    
+        try {
+            $json = file_get_contents('php://input');
+            $resultado = json_decode($json);
+    
+            //Array com os dados que deverão vir do Front
+            $lista = array(
+                "codigo" => '0',
+                "descricao" => '0',
+                "horaInicial" => '0',
+                "horaFinal" => '0'
             );
     
-            // Verificando se os parâmetros recebidos são válidos
             if (verificarParam($resultado, $lista) == 1) {
-                $json = file_get_contents('php://input');
-                $resultado = json_decode($json);
-
-                // Fazendo o setter do código
+                //Fazendo os setters
                 $this->setCodigo($resultado->codigo);
-    
-                // código obrigatório
-                if (trim($this->getCodigo()) == '') {
+                $this->setDescricao($resultado->descricao);
+                $this->setHoraInicial($resultado->horaInicial);
+                $this->setHoraFinal($resultado->horaFinal);
+                //Código é obrigatório
+                if (trim($this->getCodigo() == '')) {
                     $retorno = array(
                         'codigo' => 2,
                         'msg' => 'Código não informado.'
                     );
-                } else {
-                    // Realizando a instância da model
+                //Descrição, Hora Inicial e Hora Final,
+                //Pelo menos 1 deles precisa ser informado.
+                }elseif(trim($this->getDescricao() == '' && $this->getHoraInicial() == '' 
+                        && $this->getHoraFinal() == '')){
+                    $retorno = array(
+                        'codigo' => 3,
+                        'msg' => 'Pelo menos um parâmetro precisa ser 
+                        passado para atualização.');
+                }else{
+                    //Realizo a instância da Model
                     $this->load->model('M_horario');
-    
-                    // Atributo $retorno recebe array com informações da desativação
-                    $retorno = $this->M_horario->desativar($this->getCodigo());
+
+                    //Atributo $retorno recebe array com informações
+                    //da alteração dos dados
+                    $retorno = $this->M_horario->alterar($this->getCodigo(),
+                                                         $this->getDescricao(),
+                                                         $this->getHoraInicial(),
+                                                         $this->getHoraFinal());
                 }
             } else {
                 $retorno = array(
                     'codigo' => 99,
-                    'msg' => 'Os campos vindos do frontEnd não representam o método de desativação. Verifique.'
+                    'msg' => 'Os campos vindos do FrontEnd não representam
+                              o método de login. Verifique.'
                 );
             }
-        } catch (Exception $e) {
-            $retorno = array(
-                'codigo' => '0',
-                'msg' => 'ATENÇÃO: O seguinte erro aconteceu: ' . $e->getMessage()
-            );
+        }catch (Exception $e) {
+                $retorno = array('codigo' => 0,
+                                 'msg' => 'ATENÇÃO: O seguinte erro aconteceu -> ',
+                                           $e->getMessage());
         }
+            
+            //Retorno no formato JSON
+            echo json_encode($retorno);
+    }
+
+    public function desativar(){
+        //Usuário recebido via JSON e colocado em variável
+        //Retornos possíveis:
+        //1 - Horário desativado corretamente (Banco)
+        //2 - Código do horário não informado
+        //3 - Horário não cadastrado no sistema
+        //4 - Houve algum problema na desativação do horário
     
-        // Retorno no formato JSON
+        try{
+            $json = file_get_contents('php://input');
+            $resultado = json_decode($json);
+        
+            //Array com os dados que deverão vir do Front
+            $lista = array(
+            "codigo" => '0'
+            );
+                    
+            if (verificarParam($resultado, $lista) == 1) {
+
+                $json = file_get_contents('php://input');
+                $resultado = json_decode($json);
+            
+                //Fazendo os setters
+                $this->setCodigo($resultado->codigo);
+            
+                //Código é obrigatório
+                if (trim($this->getCodigo() == '')){
+                    $retorno = array('codigo' => 2,
+                                      'msg' => 'Código não informado.');
+                }else{
+                    //Realizo a instância da Model
+                    $this->load->model("M_horario");
+
+                    $retorno = $this->M_horario->desativar($this->getCodigo());                
+                }
+            }else {
+            $retorno = array(
+                'codigo' => 99,
+                'msg' => 'Os campos vindos do FrontEnd não representam
+                          o método de login. Verifique.'
+                );
+            }
+
+            } catch (Exception $e) {
+                $retorno = array('codigo' => 0,
+                                 'msg' => 'ATENCÃO: O seguinte erro aconteceu -> ',
+                                           $e->getMessage());
+            }
+
+       //Retorno no formato JSON
+        echo json_encode($retorno);
+    }
+    public function listar(){
+        // função para listar os horários no front
+        // sem necessidade de parâmetros
+        try{
+            // carrega modela
+            $this->load->model('M_horario');
+
+            // chama o método para buscar todas as turmas
+            $retorno = $this->M_horario->listarTodos();
+
+        } catch (Exception $e) {
+            $retorno = array('codigo' => 0,
+                               'msg' => 'Erro ao listar os horarios'. $e->getMessage());
+        }
+
+        // retorna as salas em formato JSON
         echo json_encode($retorno);
     }
 }
+
+// localhost/FatecSRDSII202501/Horario/inserir
+
+//  {
+//     "codigo" : "",
+// 	"descricao" : "Manhã",
+// 	"horaInicial" : "08:00",
+//  	"horaFinal" : "12:00"
+//  }
