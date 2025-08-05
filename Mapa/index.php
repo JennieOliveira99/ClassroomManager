@@ -1,4 +1,8 @@
 <?php
+
+require_once APPPATH . 'core/CorsMiddleware.php';
+CorsMiddleware::handle();
+
 /**
  * CodeIgniter
  *
@@ -224,7 +228,7 @@ switch (ENVIRONMENT)
  * -------------------------------------------------------------------
  */
 	// The name of THIS file
-	define('SELF', pathinfo(__FILE__, PATHINFO_BASENAME));
+	define('SELF', basename(__FILE__));
 
 	// Path to the system directory
 	define('BASEPATH', $system_path);
@@ -312,4 +316,9 @@ switch (ENVIRONMENT)
  *
  * And away we go...
  */
+
+
+
 require_once BASEPATH.'core/CodeIgniter.php';
+
+
