@@ -3,7 +3,7 @@
     
     # Handle CORS preflight requests
     RewriteCond %{REQUEST_METHOD} OPTIONS
-    RewriteRule ^(.*)$ $1 [R=200,L]
+    RewriteRule ^(.*)$ $1 [R=204,L]
     
     # Standard CodeIgniter rewrite rules
     RewriteCond %{REQUEST_FILENAME} !-f
@@ -15,5 +15,8 @@
     Header always set Access-Control-Allow-Origin "*"
     Header always set Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS"
     Header always set Access-Control-Allow-Headers "Content-Type, Authorization, X-Requested-With"
-    Header always set Access-Control-Allow-Credentials "true"
+    Header always set Access-Control-Max-Age "3600"
+    
+    # Para requisições com credenciais (se necessário)
+    # Header always set Access-Control-Allow-Credentials "true"
 </IfModule>

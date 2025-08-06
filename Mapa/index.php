@@ -1,7 +1,5 @@
 <?php
 
-require_once APPPATH . 'core/CorsMiddleware.php';
-CorsMiddleware::handle();
 
 /**
  * CodeIgniter
@@ -319,6 +317,10 @@ switch (ENVIRONMENT)
 
 
 
+//require_once BASEPATH.'core/CodeIgniter.php';
+
+
+
 require_once BASEPATH.'core/CodeIgniter.php';
-
-
+// require_once APPPATH . 'core/CorsMiddleware.php';
+// CorsMiddleware::handle();

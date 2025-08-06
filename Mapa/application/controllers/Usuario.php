@@ -320,11 +320,7 @@ class Usuario extends CI_Controller {
         //4 - Usuário ou senha inválidos (Banco)
         //5 - Usuário deletado - Status (Banco)
         //99 - Os campos vindos do FrontEnd não representam o método de login
-         header("Access-Control-Allow-Origin: *");
-    header("Access-Control-Allow-Methods: GET, POST, OPTIONS");
-    header("Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With");
-    header('Content-Type: application/json; charset=utf-8');
-
+        
 
         try {
             //Usuário e senha recebidos via JSON
