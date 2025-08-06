@@ -5,21 +5,19 @@
   <img src="https://img.shields.io/static/v1?label=STATUS&message=EM%20DESENVOLVIMENTO&color=green&style=for-the-badge"/>
 </p>
 
-<p align="center">API para gerenciamento e agendamento de salas de aula, permitindo cadastro de usuários, reservas com horários definidos, identificação de professores, turmas, salas e muito mais.</p>
+<p align="center">API robusta para o gerenciamento e agendamento de salas de aula, oferecendo recursos completos para cadastro de usuários, reservas com horários definidos, organização de professores, turmas, salas e visualização do mapeamento das instalações.</p>
 
----
 
-## 🚀 **Sobre o Projeto**
+##
 
-O **Classroom Manager** foi desenvolvido para facilitar o controle e organização de salas de aula em instituições de ensino.  
-Com ele, é possível:
+## 🚀 **Sobre o Projeto** 
 
-- Cadastrar usuários para uso do sistema  
--  Reservar salas de aula com data e horário específicos  
--  Atribuir professores e turmas às salas reservadas  
--  Visualizar mapas e organização das salas  
-
----
+O **Classroom Manager** é um sistema projetado para otimizar a administração de salas de aula em instituições de ensino. A API possibilita o controle centralizado de todos os recursos necessários para garantir a eficiência na utilização dos espaços disponíveis. Com esta solução, é possível: 
+- 📌 **Cadastro de usuários** para gerenciamento interno do sistema.
+- 🏫 **Reservar salas** com datas e horários específicos, garantindo melhor aproveitamento da estrutura física.
+- 👩‍🏫 **Vincular professores e turmas** às salas reservadas, evitando conflitos de agendamento.
+- 🗺 **Visualizar mapas e layouts das salas**, facilitando a gestão dos ambientes de ensino.
+ - O projeto foi estruturado para oferecer uma base sólida e escalável, garantindo integridade dos dados, segurança no acesso e maior agilidade no processo de alocação de espaços. 
 
 ## 🧪 **Tecnologias Utilizadas**
 
@@ -31,30 +29,37 @@ Com ele, é possível:
 
 </div>
 
----
-
 ## 📌 **Endpoints Disponíveis**
 
-- **/sala** → Gerenciamento de salas de aula  
-- **/horario** → Controle de horários  
-- **/turma** → Cadastro e vinculação de turmas  
-- **/professor** → Cadastro de professores  
-- **/mapa** → Visualização do mapeamento de salas  
-- **/usuario** → Gerenciamento de usuários do sistema  
+A API fornece os seguintes recursos principais: 
+- **/sala** → Criar, editar, listar e excluir salas de aula.
+- **/horario** → Gerenciar os horários de funcionamento e reservas.
+- **/turma** → Cadastro e associação de turmas às salas.
+- **/professor** → Registro de professores e vínculo com turmas e horários.
+- **/mapa** → Visualização gráfica do mapeamento das salas cadastradas.
+- **/usuario** → Controle de acesso e gerenciamento dos usuários do sistema.
 
----
+Cada endpoint foi projetado para oferecer respostas consistentes, utilizando boas práticas de arquitetura REST e padronização de dados. 
+
 
 ## ⚠️ Aviso Importante
+
 
 > Este projeto é **privado** e encontra-se em fase de desenvolvimento.  
 > - 🚫 **Não é permitido clonar, copiar ou modificar o código-fonte sem autorização prévia.**  
 > - 🔒 Todos os direitos sobre o conteúdo, estrutura e lógica são reservados.  
 > - 🎓 Projeto desenvolvido para fins **acadêmicos e pessoais**.  
 
----
+## Acompanhe também o frontend do projeto
+
+- Front end está sendo desenvolvido em Flutter, um framework da Google baseado em dart.
+
+[![Outro Repositório](https://img.shields.io/badge/%20Frontend-Ver%20Aqui-purple.svg)](https://github.com/JennieOliveira99/ClassroomManager-Web) 
+
+
 
 ## ✍️ Autora
 
 **Jennyfer Alvim de Oliveira**  
 
----
+
